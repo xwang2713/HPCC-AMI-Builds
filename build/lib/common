@@ -1,0 +1,118 @@
+#
+# Check distro name and package type
+# Set DESTRO      (ubuntu/centos/fedora, etc)
+# Set PKG_TYPE    (DEB/RPM/TGZ)
+# Set PKG_TYPE    (DEB/RPM/TGZ)
+# Set CODENAME   (for ubuntu: precise,saucy,trusty,etc)
+# Set ARCH        (amd64,x86_64,i386) 
+#
+check_distro ()
+{
+   declare -A _distros
+   _distros=( 
+        [ubuntu]=deb,amd64,lsb-release,,Ubuntu 
+        [debian]=deb,amd64,lsb-release,,Debian
+        [centos]=rpm,x86_64,redhat-release,el,CentOS
+        [fedora]=rpm,x86_64,redhat-release,el,Fedora
+        [redhat]=rpm,x86_64,redhat-release,el,RedHat 
+        [suse]=rpm,x86_64,SuSE-release,suse,SuSE 
+        [gentoo]=rpm,amd64,gentoo-release,,Gentoo
+   )
+
+   # Get DISTRO and PKG_TYPE
+   _tmp_file=distro_$$.txt
+   cat /etc/*release > $_tmp_file
+
+   for _distro in "${!_distros[@]}"
+   do
+      _count=$(grep -c ${_distro} $_tmp_file)
+      if [ $_count -gt 0 ]
+      then
+         DISTRO=${_distro}
+         PKG_TYPE=$(echo ${_distros[$_distro]} | cut -d',' -f1)
+         DISTRO_DISPLAY_NAME=$(echo ${_distros[$_distro]} | cut -d',' -f5)
+      fi
+   done
+   rm -rf $_tmp_file
+
+   echo "test 1200"
+   # Get ARCH
+   arch=$(uname -m) 
+   case "$arch" in
+      "x86_64")
+          ARCH=$(echo ${_distros[$_distro]} | cut -d',' -f2)
+          ;;
+      "i386" | "i686")
+          ARCH="i386"
+          ;;
+   esac
+
+   echo "test 1300"
+   # Get CODENAME
+   release_file=$(echo ${_distros[$DISTRO]} | cut -d',' -f3)
+   if [ -e /etc/debian_version ]
+   then 
+      if [ -e /etc/lsb-release ]
+      then
+          . /etc/lsb-release
+          CODENAME=${DISTRIB_CODENAME}
+      else
+         case $(cat /etc/debian_version) in
+            5.*)
+               CODENAME=lenny
+               ;;
+            6.*)
+               CODENAME=squeeze
+               ;;
+            7.*)
+               CODENAME=wheezy
+               ;;
+            "sid")
+               CODENAME=sid
+               ;;
+         esac
+      fi
+
+   elif [ -e /etc/gentoo-release ]
+   then
+      CODENAME=gentoo
+   else
+      release_file=$(echo ${_distros[$DISTRO]} | cut -d',' -f3)
+      codename_prefix=$(echo ${_distros[$DISTRO]} | cut -d',' -f4)
+      _version=$(/bin/rpm -q --qf "%{VERSION}" --whatprovides /etc/${release_file})
+      CODENAME=${codename_prefix}${_version}
+   fi
+   echo "test 1400"
+}
+
+
+get_distro_version() 
+{
+   _distro=$1
+   _codename=$2
+
+   case "$_distro" in
+      cenos|fedora|redhat|suse)
+         echo ${_codename:2}
+         ;;
+      ubuntu)
+         case "$_codename" in
+            lucid)
+               echo 10.04
+               ;;
+            precise)
+               echo 12.04
+               ;;
+            trusty)
+               echo 14.04
+               ;;
+         esac
+         ;;
+   esac
+}
+
+#check_distro
+#echo $DISTRO
+#echo $PKG_TYPE
+#echo $ARCH
+#echo $CODENAME

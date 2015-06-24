@@ -1,0 +1,15 @@
+upgrade_pkg_sources()
+{
+   sudo yum -y check-update
+   sudo yum -y upgrade
+}
+
+install()
+{
+   sudo chroot $imagedir yum -y install $@
+}
+
+install_from_local()
+{
+   sudo chroot $imagedir yum -y install $@
+}

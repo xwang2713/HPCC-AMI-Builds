@@ -1,0 +1,38 @@
+get_image_site()
+{
+   imagesite=http://cloud-images.ubuntu.com/releases/${codename}/release
+}
+
+get_release_amis()
+{
+   RELEASE_AMIS=`curl --silent ${imagesite}/ \
+   | perl -p -e 's/td>\n/td\>/' \
+   | grep instance \
+   | grep 64 \
+   | grep m1.small \
+   | sed "s/.*ec2-run-instances/ec2-describe-images/g" \
+   | sed "s/--key.*//g" \
+   | sed "s/--instance-type m1.small //g"`
+}
+
+add_sources_list_multiverse ()
+{
+   sudo perl -pi.orig -e 's/universe$/universe multiverse/g' \
+      /mnt/${codename}-${ARCH}/etc/apt/sources.list
+}
+
+
+fix_chrooted_locale()
+{
+   # Found this reference to a fix for the locale/language errors on a
+   # chrooted ubuntu images 
+   # http://www.thomas-krenn.com/de/wiki/Perl_warning_Setting_locale_failed_unter_Debian
+
+   export LANGUAGE=en_US.UTF-8
+   export LANG=en_US.UTF-8
+   export LC_ALL=en_US.UTF-8
+   sudo chroot $imagedir locale-gen en_US.UTF-8
+   sudo chroot $imagedir dpkg-reconfigure locales
+
+}
+

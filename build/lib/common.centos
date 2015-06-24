@@ -1,0 +1,30 @@
+get_image_site()
+{
+  echo "to do"
+}
+
+get_release_amis()
+{
+  echo "to do"
+}
+
+add_sources_list_multiverse ()
+{
+   return
+}
+
+upgrade_pkg_sources()
+{
+   sudo yum -y check-update
+   sudo yum -y upgrade
+}
+
+install()
+{
+   sudo chroot $imagedir yum -y install $@
+}
+
+fix_chrooted_locale()
+{
+   echo "Need to check if neccessory for CentOS"
+}

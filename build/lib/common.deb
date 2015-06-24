@@ -1,0 +1,21 @@
+upgrade_pkg_sources()
+{
+   DEBIAN_FRONTEND=noninteractive
+   sudo DEBIAN_FRONTEND=noninteractive chroot $imagedir apt-get  update
+   sudo DEBIAN_FRONTEND=noninteractive chroot $imagedir apt-get -y \
+      -o DPkg::Options::=--force-confdef \
+      -o DPkg::Options::=--force-confold  upgrade
+}
+
+install()
+{
+   DEBIAN_FRONTEND=noninteractive sudo chroot $imagedir apt-get -y \
+      -o DPkg::Options::=--force-confdef \
+      -o DPkg::Options::=--force-confold \
+      install $@
+}
+
+install_from_local()
+{
+   sudo chroot $imagedir dpkg -i $@
+}

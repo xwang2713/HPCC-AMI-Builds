@@ -1,13 +1,6 @@
 #!/bin/bash
 
 
-
-#S3
-#s3cmd ls s3://juju-db76721c9dc364676405d1fd3d941f9e
-#s3cmd del s3://juju-db76721c9dc364676405d1fd3d941f9e/*
-#s3cmd rb s3://juju-db76721c9dc364676405d1fd3d941f9e
-#
-
 if [ -z "$1" ]; then
    echo "Must supply HPCC version."
    exit 1

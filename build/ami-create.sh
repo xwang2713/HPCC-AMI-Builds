@@ -61,7 +61,7 @@
 #
 
 CMD_PREFIX=
-[ "$USER" != "root"] && CMD_PREFIX=sudo
+[ "$USER" != "root" ] && CMD_PREFIX=sudo
 
 work_dir=$(dirname $0)
 . ${work_dir}/lib/common

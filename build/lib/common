@@ -35,7 +35,6 @@ check_distro ()
    done
    rm -rf $_tmp_file
 
-   echo "test 1200"
    # Get ARCH
    arch=$(uname -m) 
    case "$arch" in
@@ -47,7 +46,6 @@ check_distro ()
           ;;
    esac
 
-   echo "test 1300"
    # Get CODENAME
    release_file=$(echo ${_distros[$DISTRO]} | cut -d',' -f3)
    if [ -e /etc/debian_version ]
@@ -82,7 +80,6 @@ check_distro ()
       _version=$(/bin/rpm -q --qf "%{VERSION}" --whatprovides /etc/${release_file})
       CODENAME=${codename_prefix}${_version}
    fi
-   echo "test 1400"
 }
 
 

@@ -196,6 +196,10 @@ for i in $RELEASE_AMIS;
 do
 	echo $i
 	REGION=`echo $i | grep -o "\-\-region [a-z]*-[a-z]*-[1-9]*" | sed "s/--region //g"` 
+
+        # Skip eu-central-1. We will build eu-central-1 with script ami-create-one.sh
+        [ "$REGION" = "eu-central-1" ] && continue
+
 	echo "Found REGION $REGION"
 	if [ $REGION == $EC2_HOME_REGION ];
 	then

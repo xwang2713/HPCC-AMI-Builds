@@ -61,7 +61,7 @@
 #
 
 CMD_PREFIX=
-[ "$USER" != "root" ] && CMD_PREFIX=sudo
+[ "$USER" != "root"] && CMD_PREFIX=sudo
 
 work_dir=$(dirname $0)
 . ${work_dir}/lib/common
@@ -185,21 +185,21 @@ declare -a AMIS AKIS REGIONS S3BUCKETS RELEASE_AMIS
 AMI=;AKI=;
 IFSSAVE=$' \t\n'
 IFS=$'\n'
-echo "curl --silent ${imagesite}"
+#echo "curl --silent ${imagesite}"
+echo "Get Ubuntu release AMIs"
 
 get_release_amis
 echo $RELEASE_AMIS
 
 
+
 EC2_REGION_COUNT=0
-for i in $RELEASE_AMIS; 
+for i in "${RELEASE_AMIS[@]}"; 
 do
 	echo $i
 	REGION=`echo $i | grep -o "\-\-region [a-z]*-[a-z]*-[1-9]*" | sed "s/--region //g"` 
-
         # Skip eu-central-1. We will build eu-central-1 with script ami-create-one.sh
-        [ "$REGION" = "eu-central-1" ] && continue
-
+        [ "$REGION" = "eu-central-1" ] || [ "$REGION" = "ap-northeast-2" ] || [ "$REGION" = "us-gov-west-1" ] && continue
 	echo "Found REGION $REGION"
 	if [ $REGION == $EC2_HOME_REGION ];
 	then
@@ -212,9 +212,10 @@ do
 			EC2_HOME_AKI=`cat $imagedir.aki.$REGION`
 			echo "Read saved home AKI: $EC2_HOME_AKI from disk"
 		else
-			IFS=$' \t\n' 
-			EC2_HOME_AKI=`ec2-describe-images $AMI --region $REGION | grep -o "aki-[a-f0-9]*"`
-			IFS=$IFSTEMP
+			#IFS=$' \t\n' 
+			#EC2_HOME_AKI=`ec2-describe-images $AMI --region $REGION | grep -o "aki-[a-f0-9]*"`
+			#IFS=$IFSTEMP
+			EC2_HOME_AKI=`echo $i | grep -o "aki-[a-f0-9]*"`
 			echo "Saving home AKI $EC2_HOME_AKI to disk"
 			echo $EC2_HOME_AKI | sudo tee $imagedir.aki.$REGION
 		fi
@@ -231,10 +232,11 @@ do
 			AKI=`cat $imagedir.aki.$REGION`
 			echo "Read saved $REGION AKI: $AKI from disk"
 		else
-			IFSTEMP=$IFS 
-			IFS=$' \t\n' 
-			AKI=`ec2-describe-images $AMI --region $REGION | grep -o "aki-[a-f0-9]*"` 
-			IFS=$IFSTEMP
+			#IFSTEMP=$IFS 
+			#IFS=$' \t\n' 
+			#AKI=`ec2-describe-images $AMI --region $REGION | grep -o "aki-[a-f0-9]*"` 
+			#IFS=$IFSTEMP
+			AKI=`echo $i | grep -o "aki-[a-f0-9]*"` 
 			echo "Saving $REGION AKI $AKI to disk"
 			echo $AKI | sudo tee $imagedir.aki.$REGION
 		fi
@@ -242,6 +244,7 @@ do
 		S3BUCKETS[$EC2_REGION_COUNT]=${S3_PREFIX}-$REGION
 	fi
 done
+
 
 
 
@@ -259,6 +262,7 @@ for i in `seq 1 $EC2_REGION_COUNT`;
 do 
 	echo "${REGIONS[$i]}: ${AMIS[$i]} ${AKIS[$i]} ${S3BUCKETS[$i]}"
 done
+
 set -x
 
 if [ ! -d ~/bundle/$bundlefn ]; 
@@ -331,9 +335,19 @@ echo 'Installing HPCC dependancies'
 dependencies=$(cat ${work_dir}/dependencies/${codename})
 install $dependencies
 
+# Workaround JIRA HPCC ticket: HSIC-8
+if [ "${codename}" = "trusty" ];
+then 
+   cat >> /etc/init/cloud-config.conf <<EOF
+random_seed:
+   command: ["pollinate", "-q", "--curl-opts", "-k"]
+EOF
+fi
+
+
 #create install script on the fly in our chroot volume
 sudo touch $imagedir/install_fuse.sh
-cat >> $imagedir/install_fuse.sh <<EOF
+sudo cat >> $imagedir/install_fuse.sh <<EOF
 #!/bin/bash
 cd /
 

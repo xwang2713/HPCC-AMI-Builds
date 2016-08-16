@@ -61,7 +61,7 @@
 #
 
 CMD_PREFIX=
-[ "$USER" != "root"] && CMD_PREFIX=sudo
+[ "$USER" != "root" ] && CMD_PREFIX=sudo
 
 work_dir=$(dirname $0)
 . ${work_dir}/lib/common
@@ -194,7 +194,7 @@ echo $RELEASE_AMIS
 
 
 EC2_REGION_COUNT=0
-for i in $RELEASE_AMIS; 
+for i in "${RELEASE_AMIS[@]}"; 
 do
 	echo $i
 	REGION=`echo $i | grep -o "\-\-region [a-z]*-[a-z]*-[1-9]*" | sed "s/--region //g"` 
@@ -210,9 +210,10 @@ do
 			EC2_HOME_AKI=`cat $imagedir.aki.$REGION`
 			echo "Read saved home AKI: $EC2_HOME_AKI from disk"
 		else
-			IFS=$' \t\n' 
-			EC2_HOME_AKI=`ec2-describe-images $AMI --region $REGION | grep -o "aki-[a-f0-9]*"`
-			IFS=$IFSTEMP
+			#IFS=$' \t\n' 
+			#EC2_HOME_AKI=`ec2-describe-images $AMI --region $REGION | grep -o "aki-[a-f0-9]*"`
+			#IFS=$IFSTEMP
+                        EC2_HOME_AKI=`echo $i | grep -o "aki-[a-f0-9]*"`
 			echo "Saving home AKI $EC2_HOME_AKI to disk"
 			echo $EC2_HOME_AKI | sudo tee $imagedir.aki.$REGION
 		fi
@@ -229,10 +230,11 @@ do
 			AKI=`cat $imagedir.aki.$REGION`
 			echo "Read saved $REGION AKI: $AKI from disk"
 		else
-			IFSTEMP=$IFS 
-			IFS=$' \t\n' 
-			AKI=`ec2-describe-images $AMI --region $REGION | grep -o "aki-[a-f0-9]*"` 
-			IFS=$IFSTEMP
+			#IFSTEMP=$IFS 
+			#IFS=$' \t\n' 
+			#AKI=`ec2-describe-images $AMI --region $REGION | grep -o "aki-[a-f0-9]*"` 
+			#IFS=$IFSTEMP
+                        AKI=`echo $i | grep -o "aki-[a-f0-9]*"`
 			echo "Saving $REGION AKI $AKI to disk"
 			echo $AKI | sudo tee $imagedir.aki.$REGION
 		fi
@@ -331,7 +333,7 @@ install $dependencies
 
 #create install script on the fly in our chroot volume
 sudo touch $imagedir/install_fuse.sh
-cat >> $imagedir/install_fuse.sh <<EOF
+sudo cat >> $imagedir/install_fuse.sh <<EOF
 #!/bin/bash
 cd /
 

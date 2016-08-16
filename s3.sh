@@ -28,7 +28,7 @@ do
     if [ "$ACTION" = "delete" ]; then
        echo 
        echo "Delete in region $region ... " 
-       #s3cmd del s3://${bucket}/hpccsystems-community-${VERSION}*
+       s3cmd del s3://${bucket}/hpccsystems-community-${VERSION}*
     fi
     s3cmd ls s3://${bucket} | while read d t s f 
     do

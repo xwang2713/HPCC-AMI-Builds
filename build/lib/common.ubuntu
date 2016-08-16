@@ -5,14 +5,52 @@ get_image_site()
 
 get_release_amis()
 {
-   RELEASE_AMIS=`curl --silent ${imagesite}/ \
-   | perl -p -e 's/td>\n/td\>/' \
-   | grep instance \
-   | grep 64 \
-   | grep m1.small \
-   | sed "s/.*ec2-run-instances/ec2-describe-images/g" \
-   | sed "s/--key.*//g" \
-   | sed "s/--instance-type m1.small //g"`
+   #Ubuntu change its imagesite content. We cannot get ami directly from 
+   #imagesite=http://cloud-images.ubuntu.com/releases/${codename}/release
+   #Instead we need manually query in that site. Cannot find automatical may 
+   #for example, RESTFUL api, etc.
+
+   #RELEASE_AMIS=`curl --silent ${imagesite}/ \
+   #| perl -p -e 's/td>\n/td\>/' \
+   #| grep instance \
+   #| grep 64 \
+   #| grep m1.small \
+   #| sed "s/.*ec2-run-instances/ec2-describe-images/g" \
+   #| sed "s/--key.*//g" \
+   #| sed "s/--instance-type m1.small //g"`
+
+   #The content in this file is maunally collected from https://cloud-images.ubuntu.com/locator/
+   # wtih Name="$(codename}, "Instance Type"=hvm-instance and pick latest date. 
+   # This doesn't work since the ami do not have AKI
+   #amis_file=/tmp/${codename}_amis.txt
+   #if [ ! -e $amis_file ]
+   #then
+   #    echo "Missing amis file $amis_file. Collect it from https://cloud-images.ubuntu.com/locator/"
+   #fi
+
+   #index=0
+   #while read line
+   #do
+   #   RELEASE_AMIS[$index]="--region $(echo $line | awk '{print $3, $9}')"
+   #   index=$(expr $index \+ 1)
+   #done < $amis_file
+
+   # Following AKIs are from http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/UserProvidedKernels.html#AmazonKernelImageIDs
+   # There are the same for both trusty and precise
+   # amis are for trusty but they are irrelevent. We use them for all ubuntu
+   RELEASE_AMIS=('ami-515f5c3f --region ap-northeast-1 aki-176bf516 pv-grub-hd0_1.04-x86_64.gz'
+                 'ami-notavailable --region ap-northeast-2 aki-01a66b6f pv-grub-hd0_1.04-x86_64.gz'
+                 'ami-db00c9b8 --region ap-southeast-1 aki-503e7402 pv-grub-hd0_1.04-x86_64.gz'
+                 'ami-46331525 --region ap-southeast-2 aki-c362fff9 pv-grub-hd0_1.04-x86_64.gz'
+                 'ami-29e6fc45 --region eu-central-1 aki-184c7a05 pv-grub-hd0_1.04-x86_64.gz'
+                 'ami-44d26e37 --region eu-west-1 aki-52a34525 pv-grub-hd0_1.04-x86_64.gz'
+                 'ami-fae46696 --region sa-east-1 aki-5553f448 pv-grub-hd0_1.04-x86_64.gz'
+                 'ami-c85163a2 --region us-east-1 aki-919dcaf8 pv-grub-hd0_1.04-x86_64.gz'
+                 'ami-notavailable --region us-gov-west-1 aki-1de98d3e pv-grub-hd0_1.04-x86_64.gz'
+                 'ami-74285814 --region us-west-1 aki-880531cd pv-grub-hd0_1.04-x86_64.gz'
+                 'ami-a52bc9c5 --region us-west-2 aki-fc8f11cc pv-grub-hd0_1.04-x86_64.gz'
+                )
+
 }
 
 add_sources_list_multiverse ()
